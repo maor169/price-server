@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const PRODUCTS = require('./products');
+const CONTROLLED = require('./controlled');
 
 const app = express();
 app.use(cors());
@@ -50,6 +51,17 @@ app.get('/compare', (req, res) => {
     return a.total - b.total;
   });
 
+  res.json(results);
+});
+
+app.get('/controlled', (req, res) => {
+  const search = (req.query.q || '').toLowerCase().trim();
+  const results = search
+    ? CONTROLLED.filter(p =>
+        p.name.includes(search) ||
+        p.keywords.some(k => k.includes(search) || search.includes(k))
+      )
+    : CONTROLLED;
   res.json(results);
 });
 
