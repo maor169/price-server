@@ -92,9 +92,9 @@ async function loadControlledProducts() {
       }))
       .sort((a, b) => a.name.localeCompare(b.name, 'he'));
 
-    console.log(`נטענו ${cachedControlled.length} מוצרים בפיקוח`);
+    console.log(`Loaded ${cachedControlled.length} controlled products from gov.il`);
   } catch (e) {
-    console.error('שגיאה בטעינת מוצרים בפיקוח:', e.message);
+    console.error('Failed to load controlled products:', e.message);
     cachedControlled = CONTROLLED.map(p => ({ name: p.name, maxPrice: p.maxPrice, updatedAt: p.updatedAt, category: p.category }));
   }
 }
