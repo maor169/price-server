@@ -9,8 +9,16 @@ app.use(cors());
 const CHAINS = ['שופרסל', 'רמי לוי', 'ויקטורי', 'יוחננוף'];
 
 function findProduct(searchName) {
-  const normalized = searchName.toLowerCase().trim();
+  const normalized = searchName.trim();
   return PRODUCTS.find(p =>
+    p.keywords.some(k => normalized.includes(k) || k.includes(normalized) ||
+      normalized.replace(/\s+/g, '').includes(k.replace(/\s+/g, '')))
+  );
+}
+
+function findControlled(searchName) {
+  const normalized = searchName.trim();
+  return CONTROLLED.filter(p =>
     p.keywords.some(k => normalized.includes(k) || k.includes(normalized))
   );
 }
