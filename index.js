@@ -62,18 +62,15 @@ app.get('/compare', (req, res) => {
   res.json(results);
 });
 
-app.get('/controlled', async (req, res) => {
+// טעינת נתוני פיקוח בזמן הפעלת השרת
+let cachedControlled = null;
+
+async function loadControlledProducts() {
   try {
-    const search = (req.query.q || '').trim();
     const url = `https://data.gov.il/api/3/action/datastore_search?resource_id=0a760550-0426-4eb7-acf6-2ee919bf12e7&limit=380`;
-    const resp = await axios.get(url, { timeout: 10000 });
-    let records = resp.data.result.records;
+    const resp = await axios.get(url, { timeout: 15000 });
+    const records = resp.data.result.records;
 
-    if (search) {
-      records = records.filter(r => r.product && r.product.includes(search));
-    }
-
-    // שמור רק את הרשומה הכי עדכנית לכל מוצר
     const latest = {};
     for (const r of records) {
       const name = r.product;
@@ -83,7 +80,7 @@ app.get('/controlled', async (req, res) => {
       }
     }
 
-    const results = Object.values(latest)
+    cachedControlled = Object.values(latest)
       .filter(r => r['consumers price includes VAT'] > 0)
       .map(r => ({
         name: r.product,
@@ -94,19 +91,25 @@ app.get('/controlled', async (req, res) => {
       }))
       .sort((a, b) => a.name.localeCompare(b.name, 'he'));
 
-    res.json(results);
+    console.log(`נטענו ${cachedControlled.length} מוצרים בפיקוח`);
   } catch (e) {
-    // fallback לנתונים סטטיים
-    const search = (req.query.q || '').trim();
-    const results = search
-      ? CONTROLLED.filter(p => p.name.includes(search) || p.keywords.some(k => k.includes(search)))
-      : CONTROLLED;
-    res.json(results.map(p => ({ name: p.name, maxPrice: p.maxPrice, updatedAt: p.updatedAt, category: p.category })));
+    console.error('שגיאה בטעינת מוצרים בפיקוח:', e.message);
+    cachedControlled = CONTROLLED.map(p => ({ name: p.name, maxPrice: p.maxPrice, updatedAt: p.updatedAt, category: p.category }));
   }
+}
+
+app.get('/controlled', (req, res) => {
+  const search = (req.query.q || '').trim();
+  const data = cachedControlled || CONTROLLED.map(p => ({ name: p.name, maxPrice: p.maxPrice, updatedAt: p.updatedAt, category: p.category }));
+  const results = search ? data.filter(p => p.name.includes(search)) : data;
+  res.json(results);
 });
 
 app.get('/health', (_, res) => res.json({ status: 'ok' }));
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, async () => {
+  console.log(`Server running on port ${PORT}`);
+  await loadControlledProducts();
+});
 // Sat, May  2, 2026  5:13:26 PM
