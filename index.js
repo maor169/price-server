@@ -63,8 +63,9 @@ app.get('/compare', (req, res) => {
   res.json(results);
 });
 
-// טעינת נתוני פיקוח בזמן הפעלת השרת
 let cachedControlled = null;
+let lastFetched = null;
+const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 שעות
 
 async function loadControlledProducts() {
   try {
@@ -99,7 +100,11 @@ async function loadControlledProducts() {
   }
 }
 
-app.get('/controlled', (req, res) => {
+app.get('/controlled', async (req, res) => {
+  if (!cachedControlled || !lastFetched || Date.now() - lastFetched > CACHE_TTL) {
+    await loadControlledProducts();
+    lastFetched = Date.now();
+  }
   const search = (req.query.q || '').trim();
   const data = cachedControlled || CONTROLLED.map(p => ({ name: p.name, maxPrice: p.maxPrice, updatedAt: p.updatedAt, category: p.category }));
   const results = search ? data.filter(p => p.name.includes(search)) : data;
