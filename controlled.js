@@ -1,35 +1,26 @@
 // מוצרים בפיקוח מחירים ממשלתי — מחירים מירביים לצרכן כולל מע"מ
-// מקור: משרד הכלכלה והתעשייה — gov.il
-// עדכון אחרון: 2026 (המחירים מתעדכנים 4-6 פעמים בשנה)
+// מקור רשמי: משרד הכלכלה והתעשייה — gov.il/he/departments/dynamiccollectors/food-price-control-search
+// המחירים מתעדכנים מעת לעת. לבדיקת המחיר הרשמי העדכני: gov.il
 
 const CONTROLLED_PRODUCTS = [
-  // פיקוח משרד הכלכלה
-  { name: 'לחם אחיד קטן (400 גר\')', maxPrice: 5.90, category: 'לחם', keywords: ['לחם אחיד', 'לחם קטן'] },
-  { name: 'לחם אחיד גדול (800 גר\')', maxPrice: 9.80, category: 'לחם', keywords: ['לחם אחיד גדול', 'לחם גדול'] },
-  { name: 'חלב גולמי 3% (ליטר)', maxPrice: 6.23, category: 'חלב', keywords: ['חלב 3%', 'חלב טרי'] },
-  { name: 'חלב דל שומן 1% (ליטר)', maxPrice: 6.23, category: 'חלב', keywords: ['חלב 1%', 'חלב דל'] },
-  { name: 'גבינה לבנה 5% (250 גר\')', maxPrice: 6.80, category: 'גבינות', keywords: ['גבינה לבנה 5%'] },
-  { name: 'גבינה לבנה 9% (250 גר\')', maxPrice: 7.20, category: 'גבינות', keywords: ['גבינה לבנה 9%'] },
-  { name: 'שמנת חמוצה 15% (200 מ"ל)', maxPrice: 6.50, category: 'חלב', keywords: ['שמנת חמוצה 15%'] },
-  { name: 'ביצים L (12 יח\')', maxPrice: 15.90, category: 'ביצים', keywords: ['ביצים l', 'ביצים גדולות'] },
-  { name: 'ביצים M (12 יח\')', maxPrice: 13.90, category: 'ביצים', keywords: ['ביצים m', 'ביצים בינוניות'] },
-  { name: 'סוכר לבן (1 ק"ג)', maxPrice: 6.50, category: 'יבשים', keywords: ['סוכר לבן'] },
-  { name: 'שמן סויה (1 ליטר)', maxPrice: 14.90, category: 'שמנים', keywords: ['שמן סויה'] },
-  { name: 'שמן חמניות (1 ליטר)', maxPrice: 15.90, category: 'שמנים', keywords: ['שמן חמניות'] },
-  { name: 'קמח לבן (1 ק"ג)', maxPrice: 5.80, category: 'יבשים', keywords: ['קמח לבן'] },
-  { name: 'אורז (1 ק"ג)', maxPrice: 8.90, category: 'יבשים', keywords: ['אורז'] },
-  { name: 'סרדינים בשמן (125 גר\')', maxPrice: 7.50, category: 'שימורים', keywords: ['סרדינים'] },
-  { name: 'טונה בשמן (160 גר\')', maxPrice: 8.90, category: 'שימורים', keywords: ['טונה'] },
-  { name: 'מרגרינה (250 גר\')', maxPrice: 8.50, category: 'מוצרי חלב', keywords: ['מרגרינה'] },
+  // לחם — פיקוח משרד הכלכלה
+  { name: 'לחם אחיד כהה (750 גר\')', maxPrice: 7.30, category: 'לחם', keywords: ['לחם כהה', 'לחם אחיד'], updatedAt: '21.05.2023' },
+  { name: 'לחם לבן (750 גר\')', maxPrice: 7.31, category: 'לחם', keywords: ['לחם לבן', 'לחם'], updatedAt: '21.05.2023' },
+  { name: 'חלה / מאפה שמרים (500 גר\')', maxPrice: 6.56, category: 'לחם', keywords: ['חלה', 'מאפה שמרים'], updatedAt: '21.05.2023' },
 
-  // פיקוח משרד החקלאות
-  { name: 'עוף שלם טרי (1 ק"ג)', maxPrice: 24.90, category: 'עוף', keywords: ['עוף שלם'] },
-  { name: 'חזה עוף ללא עצם (1 ק"ג)', maxPrice: 37.90, category: 'עוף', keywords: ['חזה עוף'] },
-  { name: 'שוקיים עוף (1 ק"ג)', maxPrice: 19.90, category: 'עוף', keywords: ['שוקיים', 'שוק עוף'] },
-  { name: 'כנפיים עוף (1 ק"ג)', maxPrice: 16.90, category: 'עוף', keywords: ['כנפיים'] },
-  { name: 'עוף טחון (1 ק"ג)', maxPrice: 28.90, category: 'עוף', keywords: ['עוף טחון'] },
-  { name: 'חלב 3% בקרטון (1 ליטר)', maxPrice: 6.50, category: 'חלב', keywords: ['חלב קרטון'] },
-  { name: 'גבינה צהובה 28% (100 גר\')', maxPrice: 9.20, category: 'גבינות', keywords: ['גבינה צהובה'] },
+  // חלב — פיקוח משרד החקלאות
+  { name: 'חלב טרי 3% שומן (שקית 1 ליטר)', maxPrice: 6.21, category: 'חלב', keywords: ['חלב 3%', 'חלב טרי', 'חלב'], updatedAt: '01.05.2024' },
+  { name: 'חלב טרי 1% שומן (שקית 1 ליטר)', maxPrice: 5.76, category: 'חלב', keywords: ['חלב 1%', 'חלב דל שומן'], updatedAt: '01.05.2024' },
+  { name: 'שמנת מתוקה 38% (קרטון 250 מ"ל)', maxPrice: 7.39, category: 'חלב', keywords: ['שמנת מתוקה', 'שמנת'], updatedAt: '01.05.2024' },
+
+  // גבינות — פיקוח משרד החקלאות
+  { name: 'גבינה קשה חצי שמנה (1 ק"ג)', maxPrice: 51.14, category: 'גבינות', keywords: ['גבינה קשה', 'גבינה צהובה'], updatedAt: '01.05.2024' },
+
+  // ביצים — פיקוח משרד החקלאות
+  { name: 'ביצי מאכל XL (12 יח\')', maxPrice: 15.19, category: 'ביצים', keywords: ['ביצים xl', 'ביצים גדולות', 'ביצים'], updatedAt: '01.02.2023' },
+
+  // מלח — פיקוח משרד הכלכלה
+  { name: 'מלח מטבח (1 ק"ג)', maxPrice: 2.07, category: 'יבשים', keywords: ['מלח'], updatedAt: '01.10.2015' },
 ];
 
 module.exports = CONTROLLED_PRODUCTS;
