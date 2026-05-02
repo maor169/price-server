@@ -62,15 +62,34 @@ app.get('/compare', (req, res) => {
   res.json(results);
 });
 
-app.get('/controlled', (req, res) => {
-  const search = (req.query.q || '').toLowerCase().trim();
-  const results = search
-    ? CONTROLLED.filter(p =>
-        p.name.includes(search) ||
-        p.keywords.some(k => k.includes(search) || search.includes(k))
-      )
-    : CONTROLLED;
-  res.json(results);
+app.get('/controlled', async (req, res) => {
+  try {
+    const search = (req.query.q || '').trim();
+    const url = `https://data.gov.il/api/3/action/datastore_search?resource_id=0a760550-0426-4eb7-acf6-2ee919bf12e7&limit=380`;
+    const resp = await axios.get(url, { timeout: 10000 });
+    let records = resp.data.result.records;
+
+    if (search) {
+      records = records.filter(r => r.product && r.product.includes(search));
+    }
+
+    const results = records.map(r => ({
+      name: r.product,
+      maxPrice: r['consumers price includes VAT'],
+      eilatPrice: r['consumer price in Eilat'],
+      updatedAt: r['update date'],
+      category: 'מוצרים בפיקוח',
+    }));
+
+    res.json(results);
+  } catch (e) {
+    // fallback לנתונים סטטיים
+    const search = (req.query.q || '').trim();
+    const results = search
+      ? CONTROLLED.filter(p => p.name.includes(search) || p.keywords.some(k => k.includes(search)))
+      : CONTROLLED;
+    res.json(results.map(p => ({ name: p.name, maxPrice: p.maxPrice, updatedAt: p.updatedAt, category: p.category })));
+  }
 });
 
 app.get('/health', (_, res) => res.json({ status: 'ok' }));
