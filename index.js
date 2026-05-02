@@ -73,13 +73,26 @@ app.get('/controlled', async (req, res) => {
       records = records.filter(r => r.product && r.product.includes(search));
     }
 
-    const results = records.map(r => ({
-      name: r.product,
-      maxPrice: r['consumers price includes VAT'],
-      eilatPrice: r['consumer price in Eilat'],
-      updatedAt: r['update date'],
-      category: 'מוצרים בפיקוח',
-    }));
+    // שמור רק את הרשומה הכי עדכנית לכל מוצר
+    const latest = {};
+    for (const r of records) {
+      const name = r.product;
+      const date = new Date(r['update date'].split('/').reverse().join('-'));
+      if (!latest[name] || date > new Date(latest[name]['update date'].split('/').reverse().join('-'))) {
+        latest[name] = r;
+      }
+    }
+
+    const results = Object.values(latest)
+      .filter(r => r['consumers price includes VAT'] > 0)
+      .map(r => ({
+        name: r.product,
+        maxPrice: r['consumers price includes VAT'],
+        eilatPrice: r['consumer price in Eilat'],
+        updatedAt: r['update date'],
+        category: 'מוצרים בפיקוח',
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name, 'he'));
 
     res.json(results);
   } catch (e) {
