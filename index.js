@@ -8,7 +8,12 @@ const app = express();
 app.use(cors());
 
 const CHAINS = ['שופרסל', 'רמי לוי', 'ויקטורי', 'יוחננוף', 'אושר עד', 'מחסני השוק', 'קרפור', 'טיב טעם'];
-const PRICES_UPDATED_AT = 'מאי 2026';
+
+// תאריך עדכון מחירים — מתעדכן אוטומטית כשהשרת עולה מחדש (Render deploy)
+const SERVER_START = new Date();
+function getPricesUpdatedAt() {
+  return SERVER_START.toLocaleDateString('he-IL', { month: 'long', year: 'numeric' });
+}
 
 function findProduct(searchName) {
   const normalized = searchName.trim();
@@ -52,7 +57,7 @@ app.get('/compare', (req, res) => {
       total: parseFloat(total.toFixed(2)),
       matched,
       items: itemPrices,
-      updatedAt: PRICES_UPDATED_AT,
+      updatedAt: getPricesUpdatedAt(),
       disclaimer: 'מחירים משוערים בלבד — אינם מחירים רשמיים',
     };
   }).sort((a, b) => {
