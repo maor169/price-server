@@ -7,7 +7,7 @@ const CONTROLLED = require('./controlled');
 const app = express();
 app.use(cors());
 
-const CHAINS = ['שופרסל', 'רמי לוי', 'ויקטורי', 'יוחננוף'];
+const CHAINS = ['שופרסל', 'רמי לוי', 'ויקטורי', 'יוחננוף', 'אושר עד', 'מחסני השוק', 'קרפור', 'טיב טעם'];
 const PRICES_UPDATED_AT = 'מאי 2026';
 
 function findProduct(searchName) {
