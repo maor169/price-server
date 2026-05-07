@@ -15,12 +15,45 @@ function getPricesUpdatedAt() {
   return SERVER_START.toLocaleDateString('he-IL', { month: 'long', year: 'numeric' });
 }
 
+const SYNONYMS = {
+  'טיטול': 'חיתולים', 'טיטולים': 'חיתולים', 'פמפרס': 'חיתולים', 'האגיס': 'חיתולים', 'huggies': 'חיתולים', 'pampers': 'חיתולים',
+  'גמבה': 'פלפל', 'פפריקה': 'פלפל',
+  'נוטלה': 'ממרח שוקולד',
+  'קוקה': 'קולה', 'קוקה קולה': 'קולה', 'פפסי': 'קולה',
+  'ספגטי': 'פסטה', 'מקרוני': 'פסטה',
+  'עגבנייה': 'עגבניות', 'עגבנייות': 'עגבניות',
+  'מלפפון': 'מלפפונים',
+  'בננה': 'בננות',
+  'תפוח': 'תפוחים',
+  'בצלים': 'בצל',
+  'לחם קל': 'לחם', 'לחם מלא': 'לחם',
+  'חלב תנובה': 'חלב', 'חלב טרה': 'חלב',
+  'ביצה': 'ביצים',
+  'פטאטס': 'תפוחי אדמה', 'תפוח אדמה': 'תפוחי אדמה',
+  'כרוב': 'סלט קולסלו',
+};
+
+function normalizeTerm(term) {
+  const t = term.trim();
+  return SYNONYMS[t] || SYNONYMS[t.toLowerCase()] || t;
+}
+
+function matchesSearch(product, term) {
+  const normalized = normalizeTerm(term);
+  const lower = normalized.toLowerCase();
+  return product.keywords.some(k => {
+    const lk = k.toLowerCase();
+    return lower.includes(lk) || lk.includes(lower) ||
+      lower.replace(/\s+/g, '').includes(lk.replace(/\s+/g, ''));
+  });
+}
+
 function findProduct(searchName) {
-  const normalized = searchName.trim();
-  return PRODUCTS.find(p =>
-    p.keywords.some(k => normalized.includes(k) || k.includes(normalized) ||
-      normalized.replace(/\s+/g, '').includes(k.replace(/\s+/g, '')))
-  );
+  return PRODUCTS.find(p => matchesSearch(p, searchName));
+}
+
+function findProducts(searchName) {
+  return PRODUCTS.filter(p => matchesSearch(p, searchName));
 }
 
 function findControlled(searchName) {
@@ -29,6 +62,41 @@ function findControlled(searchName) {
     p.keywords.some(k => normalized.includes(k) || k.includes(normalized))
   );
 }
+
+app.get('/search', (req, res) => {
+  const q = (req.query.q || '').trim();
+  if (!q) return res.status(400).json({ error: 'חסר פרמטר q' });
+
+  const resolvedTerm = normalizeTerm(q);
+  const matches = findProducts(q);
+
+  if (matches.length === 0) {
+    return res.json({
+      query: q,
+      resolvedAs: resolvedTerm !== q ? resolvedTerm : null,
+      count: 0,
+      results: [],
+      suggestion: 'לא נמצאו מוצרים. נסה שם אחר או מילה כללית יותר.',
+    });
+  }
+
+  const results = matches.map(p => {
+    const sortedPrices = Object.entries(p.prices).sort((a, b) => a[1] - b[1]);
+    return {
+      name: p.name,
+      cheapest: { chain: sortedPrices[0][0], price: sortedPrices[0][1] },
+      mostExpensive: { chain: sortedPrices[sortedPrices.length - 1][0], price: sortedPrices[sortedPrices.length - 1][1] },
+      prices: p.prices,
+    };
+  });
+
+  res.json({
+    query: q,
+    resolvedAs: resolvedTerm !== q ? resolvedTerm : null,
+    count: results.length,
+    results,
+  });
+});
 
 app.get('/compare', (req, res) => {
   const items = (req.query.items || '')
